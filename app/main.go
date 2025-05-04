@@ -54,10 +54,10 @@ func handleConnection(conn net.Conn) {
 
 	var response string
 
-	if urlPath == "/abcdefg" {
-		response = "HTTP/1.1 404 Not Found\r\n\r\n"
-	} else if urlPath == "/" {
+	if urlPath == "/" {
 		response = "HTTP/1.1 200 OK\r\n\r\n"
+	} else {
+		response = "HTTP/1.1 404 Not Found\r\n\r\n"
 	}
 
 	// Responding with a basic HTTP response
