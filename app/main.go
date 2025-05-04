@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"net"
 	"os"
+	"strings"
 )
 
 func main() {
@@ -12,18 +14,53 @@ func main() {
 
 	//Uncomment this block to pass the first stage
 
-	l, err := net.Listen("tcp", "0.0.0.0:4221")
+	l, err := net.Listen("tcp", ":4221")
 	if err != nil {
 		fmt.Println("Failed to bind to port 4221")
 		os.Exit(1)
 	}
 
-	conn, err := l.Accept()
+	defer l.Close()
+
+	for {
+		conn, err := l.Accept()
+		if err != nil {
+			fmt.Println("Error accepting connection: ", err.Error())
+			os.Exit(1)
+		}
+		go handleConnection(conn)
+	}
+}
+
+func handleConnection(conn net.Conn) {
+	defer conn.Close()
+
+	reader := bufio.NewReader(conn)
+	requestLine, err := reader.ReadString('\n')
 	if err != nil {
-		fmt.Println("Error accepting connection: ", err.Error())
-		os.Exit(1)
+		fmt.Println("Error reading request:", err)
+		return
 	}
 
-	defer conn.Close()
-	conn.Write([]byte("HTTP/1.1 200 OK\r\n\r\n"))
+	// The first line of an HTTP request looks like: "GET /abcdefg HTTP/1.1"
+	parts := strings.Fields(requestLine)
+	if len(parts) < 2 {
+		fmt.Println("Invalid request format")
+		return
+	}
+
+	urlPath := parts[1] // Extract the requested path
+	fmt.Println("User requested:", urlPath)
+
+	var response string
+
+	if urlPath == "/abcdefg" {
+		response = "HTTP/1.1 404 Not Found\r\n\r\n"
+	} else if urlPath == "/" {
+		response = "HTTP/1.1 200 OK\r\n\r\n"
+	}
+
+	// Responding with a basic HTTP response
+
+	conn.Write([]byte(response))
 }
