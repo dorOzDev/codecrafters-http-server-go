@@ -40,6 +40,7 @@ func handleConnection(conn net.Conn) {
 	handlers := []Handler{
 		RootHandler{},
 		EchoHandler{},
+		UserAgentHandler{},
 		NotFoundHandler{},
 	}
 
@@ -98,12 +99,12 @@ func parseGetRequest(conn net.Conn) (*GetRequest, error) {
 	}
 
 	return &GetRequest{
-		MethodValue:  method,
-		PathValue:    cleanPath,
-		VersionValue: version,
-		RawValue:     raw,
-		Headers:      headers,
-		QueryParams:  queryParams,
+		methodValue:  method,
+		pathValue:    cleanPath,
+		versionValue: version,
+		rawValue:     raw,
+		headersMap:   headers,
+		queryParams:  queryParams,
 	}, nil
 }
 

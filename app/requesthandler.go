@@ -15,7 +15,7 @@ type Handler interface {
 type RootHandler struct{}
 
 func (r RootHandler) accept(httpRequest HttpRequest) bool {
-	return httpRequest.Path() == "/"
+	return httpRequest.path() == "/"
 }
 
 func (r RootHandler) handleRequest(httpRequest HttpRequest) HttpResponse {
@@ -35,7 +35,7 @@ func (n NotFoundHandler) handleRequest(httpRequest HttpRequest) HttpResponse {
 func reformatResponse(httpRequest HttpRequest, httpResponse HttpResponse) string {
 	var builder strings.Builder
 
-	builder.WriteString(fmt.Sprintf("%s ", httpRequest.Version()))
+	builder.WriteString(fmt.Sprintf("%s ", httpRequest.version()))
 	builder.WriteString(httpResponse.status.String())
 	builder.WriteString("\r\n")
 	if httpResponse.contentType != "" {
