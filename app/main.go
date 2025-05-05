@@ -35,6 +35,12 @@ func main() {
 func handleConnection(conn net.Conn) {
 	defer conn.Close()
 
+	handlers := []Handler{
+		RootHandler{},
+		EchoHandler{},
+		NotFoundHandler{},
+	}
+
 	reader := bufio.NewReader(conn)
 	requestLine, err := reader.ReadString('\n')
 	if err != nil {
@@ -52,22 +58,20 @@ func handleConnection(conn net.Conn) {
 	urlPath := parts[1] // Extract the requested path
 	fmt.Println("User requested:", urlPath)
 
-	var response string
-
-	if urlPath == "/" {
-		response = "HTTP/1.1 200 OK\r\n\r\n"
-	} else if strings.HasPrefix(urlPath, "/echo/") {
-		response = echo(urlPath)
-	} else {
-		response = "HTTP/1.1 404 Not Found\r\n\r\n"
+	for _, handler := range handlers {
+		if handler.Accept(urlPath) {
+			conn.Write([]byte(reformatResponse(handler.HandleRequest(urlPath))))
+			break
+		}
 	}
-
-	// Responding with a basic HTTP response
-
-	conn.Write([]byte(response))
 }
 
-func echo(body string) string {
-	ans := strings.TrimPrefix(body, "/echo/")
-	return fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", len(ans), ans)
+type EchoHandler struct{}
+
+func (e EchoHandler) Accept(url string) bool {
+	return strings.HasPrefix(url, "/echo/")
+}
+
+func (e EchoHandler) HandleRequest(url string) HttpResponse {
+	return CreateHttpResponse(200, "text/plain", strings.TrimPrefix(url, "/echo/"))
 }
