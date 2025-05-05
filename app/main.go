@@ -35,43 +35,99 @@ func main() {
 func handleConnection(conn net.Conn) {
 	defer conn.Close()
 
+	request, _ := parseGetRequest(conn)
+
 	handlers := []Handler{
 		RootHandler{},
 		EchoHandler{},
 		NotFoundHandler{},
 	}
 
-	reader := bufio.NewReader(conn)
-	requestLine, err := reader.ReadString('\n')
-	if err != nil {
-		fmt.Println("Error reading request:", err)
-		return
-	}
-
-	// The first line of an HTTP request looks like: "GET /abcdefg HTTP/1.1"
-	parts := strings.Fields(requestLine)
-	if len(parts) < 2 {
-		fmt.Println("Invalid request format")
-		return
-	}
-
-	urlPath := parts[1] // Extract the requested path
-	fmt.Println("User requested:", urlPath)
-
 	for _, handler := range handlers {
-		if handler.Accept(urlPath) {
-			conn.Write([]byte(reformatResponse(handler.HandleRequest(urlPath))))
+		if handler.accept(request) {
+			conn.Write([]byte(reformatResponse(handler.handleRequest(request))))
 			break
 		}
 	}
 }
 
-type EchoHandler struct{}
+func parseGetRequest(conn net.Conn) (*GetRequest, error) {
+	raw, err := parseRawRequest(conn)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read request line: %w", err)
+	}
 
-func (e EchoHandler) Accept(url string) bool {
-	return strings.HasPrefix(url, "/echo/")
+	lines := strings.Split(raw, "\r\n")
+	if len(lines) < 1 {
+		return nil, fmt.Errorf("empty request")
+	}
+
+	parts := strings.Split(lines[0], " ")
+	if len(parts) != 3 {
+		return nil, fmt.Errorf("invalid request line: %s", lines[0])
+	}
+
+	method, path, version := parts[0], parts[1], parts[2]
+	if method != "GET" {
+		return nil, fmt.Errorf("unsupported method: %s", method)
+	}
+
+	headers := make(map[string]string)
+	for _, line := range lines[1:] {
+		if line == "" {
+			break
+		}
+
+		kv := strings.SplitN(line, ":", 2)
+		if len(kv) == 2 {
+			headers[strings.TrimSpace(kv[0])] = strings.TrimSpace(kv[1])
+		}
+	}
+
+	queryParams := make(map[string]string)
+	pathParts := strings.SplitN(path, "?", 2)
+	cleanPath := pathParts[0]
+	if len(pathParts) == 2 {
+		pairs := strings.Split(pathParts[1], "&")
+		for _, pair := range pairs {
+			kv := strings.SplitN(pair, "=", 2)
+			if len(kv) == 2 {
+				queryParams[kv[0]] = kv[1]
+			}
+		}
+	}
+
+	return &GetRequest{
+		MethodValue:  method,
+		PathValue:    cleanPath,
+		VersionValue: version,
+		RawValue:     raw,
+		Headers:      headers,
+		QueryParams:  queryParams,
+	}, nil
 }
 
-func (e EchoHandler) HandleRequest(url string) HttpResponse {
-	return CreateHttpResponse(200, "text/plain", strings.TrimPrefix(url, "/echo/"))
+func parseRawRequest(conn net.Conn) (string, error) {
+	reader := bufio.NewReader(conn)
+	requestLine, err := reader.ReadString('\n')
+	if err != nil {
+		return "", fmt.Errorf("failed to read request line: %w", err)
+	}
+
+	requestLine = strings.TrimSpace(requestLine)
+	headers := ""
+	for {
+		line, err := reader.ReadString('\n')
+		if err != nil {
+			return "", fmt.Errorf("failed to read header line: %w", err)
+		}
+
+		if line == "\r\n" || line == "\n" {
+			break // end of headers
+		}
+
+		headers += line
+	}
+
+	return requestLine + "\r\n" + headers + "\r\n", nil
 }
