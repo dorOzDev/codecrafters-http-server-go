@@ -32,10 +32,10 @@ func (n NotFoundHandler) handleRequest(httpRequest HttpRequest) HttpResponse {
 	return NotFoundResponse
 }
 
-func reformatResponse(httpResponse HttpResponse) string {
+func reformatResponse(httpRequest HttpRequest, httpResponse HttpResponse) string {
 	var builder strings.Builder
 
-	builder.WriteString("HTTP/1.1 ")
+	builder.WriteString(fmt.Sprintf("%s ", httpRequest.Version()))
 	builder.WriteString(httpResponse.status.String())
 	builder.WriteString("\r\n")
 	if httpResponse.contentType != "" {
