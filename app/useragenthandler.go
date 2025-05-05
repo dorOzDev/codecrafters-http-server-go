@@ -10,5 +10,5 @@ func (e UserAgentHandler) accept(httpRequest HttpRequest) bool {
 
 func (e UserAgentHandler) handleRequest(httpRequest HttpRequest) HttpResponse {
 	userAgent := httpRequest.headers()["User-Agent"]
-	return CreateHttpResponse(StatusOk, "text/plain", strings.TrimPrefix(httpRequest.path(), userAgent))
+	return CreateHttpResponse(StatusOk, "text/plain", userAgent)
 }
