@@ -18,6 +18,8 @@ func CreateHttpResponse(httpStatus HttpStatus, contentType string, body string) 
 
 var NotFoundResponse = CreateHttpResponse(StatusNotFound, "", "")
 var RootResponse = CreateHttpResponse(StatusOk, "", "")
+var CreatedResponse = CreateHttpResponse(StatusCreated, "", "")
+var UnexpectedError = CreateHttpResponse(StatusInternalError, "", "")
 
 const (
 	JSON  = "application/json"

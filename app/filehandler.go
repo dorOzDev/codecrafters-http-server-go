@@ -17,20 +17,56 @@ func (e FilesHandler) accept(httpRequest HttpRequest) bool {
 }
 
 func (e FilesHandler) handleRequest(httpRequest HttpRequest) HttpResponse {
-	dir, err := getFlagValue(directoryFlag)
 
+	switch concrete := httpRequest.(type) {
+	case *GetRequest:
+		return handleGetRequest(concrete)
+	case *PostRequest:
+		return handlePostRequest(concrete)
+	default:
+		return UnexpectedError
+	}
+}
+
+func handlePostRequest(request *PostRequest) HttpResponse {
+	absolutePath, err := getAbsolutePath(request)
 	if err != nil {
-		panic(err)
+		fmt.Print("unable to get absolute path: ", err)
+		return UnexpectedError
 	}
 
-	fileName := strings.TrimPrefix(httpRequest.path(), filesHandlerPath)
-	absolutePath := filepath.Join(dir, fileName)
-	fmt.Print("looking for file: ", absolutePath)
-
+	fmt.Print("writing to file: ", absolutePath)
 	data, err := os.ReadFile(absolutePath)
 	if err != nil {
 		return NotFoundResponse
 	}
 
 	return CreateHttpResponse(StatusOk, ContentType{}.octet(), string(data))
+}
+
+func handleGetRequest(request *GetRequest) HttpResponse {
+	absolutePath, err := getAbsolutePath(request)
+	if err != nil {
+		fmt.Print("unable to get absolute path: ", err)
+		return UnexpectedError
+	}
+
+	fmt.Print("looking for file: ", absolutePath)
+	data, err := os.ReadFile(absolutePath)
+	if err != nil {
+		return NotFoundResponse
+	}
+
+	return CreateHttpResponse(StatusOk, ContentType{}.octet(), string(data))
+}
+
+func getAbsolutePath(request HttpRequest) (string, error) {
+	dir, err := getFlagValue(directoryFlag)
+	if err != nil {
+		return "", err
+	}
+
+	fileName := strings.TrimPrefix(request.path(), filesHandlerPath)
+	absolutePath := filepath.Join(dir, fileName)
+	return absolutePath, nil
 }
