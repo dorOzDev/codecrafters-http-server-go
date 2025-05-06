@@ -31,7 +31,6 @@ func main() {
 		}
 		go handleConnection(conn)
 	}
-
 }
 
 func handleConnection(conn net.Conn) {
@@ -187,46 +186,4 @@ func extractHeaders(lines []string) map[string]string {
 		}
 	}
 	return headers
-}
-
-func parseRawRequest(conn net.Conn) (string, error) {
-	reader := bufio.NewReader(conn)
-
-	// Read headers until \r\n\r\n
-	var rawRequest strings.Builder
-	for {
-		line, err := reader.ReadString('\n')
-		if err != nil {
-			return "", err
-		}
-		rawRequest.WriteString(line)
-		if line == "\r\n" { // End of headers
-			break
-		}
-	}
-
-	newVar := rawRequest.String()
-	return newVar, nil
-	// reader := bufio.NewReader(conn)
-	// requestLine, err := reader.ReadString('\n')
-	// if err != nil {
-	// 	return "", fmt.Errorf("failed to read request line: %w", err)
-	// }
-
-	// requestLine = strings.TrimSpace(requestLine)
-	// headers := ""
-	// for {
-	// 	line, err := reader.ReadString('\n')
-	// 	if err != nil {
-	// 		return "", fmt.Errorf("failed to read header line: %w", err)
-	// 	}
-
-	// 	if line == "\r\n" || line == "\n" {
-	// 		break // end of headers
-	// 	}
-
-	// 	headers += line
-	// }
-
-	// return requestLine + "\r\n" + headers + "\r\n", nil
 }
