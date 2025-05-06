@@ -1,11 +1,14 @@
 package main
 
 import (
+	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
 const filesHandlerPath = "/files/"
+const directoryFlag = "--directory"
 
 type FilesHandler struct{}
 
@@ -14,8 +17,17 @@ func (e FilesHandler) accept(httpRequest HttpRequest) bool {
 }
 
 func (e FilesHandler) handleRequest(httpRequest HttpRequest) HttpResponse {
+	dir, err := getFlagValue(directoryFlag)
+
+	if err != nil {
+		panic(err)
+	}
+
 	fileName := strings.TrimPrefix(httpRequest.path(), filesHandlerPath)
-	data, err := os.ReadFile(fileName)
+	absolutePath := filepath.Join(dir, fileName)
+	fmt.Print("looking for file: ", absolutePath)
+
+	data, err := os.ReadFile(absolutePath)
 	if err != nil {
 		return NotFoundResponse
 	}
