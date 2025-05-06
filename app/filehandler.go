@@ -36,12 +36,13 @@ func handlePostRequest(request *PostRequest) HttpResponse {
 	}
 
 	fmt.Print("writing to file: ", absolutePath)
-	data, err := os.ReadFile(absolutePath)
+	err = os.WriteFile(absolutePath, []byte(request.bodyValue), 0644)
 	if err != nil {
-		return NotFoundResponse
+		fmt.Print("unable to write to file: ", err)
+		return UnexpectedError
 	}
-
-	return CreateHttpResponse(StatusOk, ContentType{}.octet(), string(data))
+	fmt.Print("successfully written to file: ", absolutePath)
+	return CreatedResponse
 }
 
 func handleGetRequest(request *GetRequest) HttpResponse {
