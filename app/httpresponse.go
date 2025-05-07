@@ -5,6 +5,7 @@ type HttpResponse struct {
 	contentType   string
 	contentLength int
 	body          string
+	headersMap    map[string]string
 }
 
 func CreateHttpResponse(httpStatus HttpStatus, contentType string, body string) HttpResponse {
@@ -13,7 +14,12 @@ func CreateHttpResponse(httpStatus HttpStatus, contentType string, body string) 
 		contentType:   contentType,
 		contentLength: len(body),
 		body:          body,
+		headersMap:    make(map[string]string),
 	}
+}
+
+func (r HttpResponse) addHeader(headerName string, headerValue string) {
+	r.headersMap[headerName] = headerValue
 }
 
 var NotFoundResponse = CreateHttpResponse(StatusNotFound, "", "")
