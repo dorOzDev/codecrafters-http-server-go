@@ -45,7 +45,16 @@ func reformatResponse(httpRequest HttpRequest, httpResponse HttpResponse) string
 
 	if httpResponse.contentLength > 0 {
 		builder.WriteString(fmt.Sprintf("Content-Length: %d", httpResponse.contentLength))
+		builder.WriteString("\r\n")
 	}
+
+	builder.WriteString("\r\n")
+
+	for key, val := range httpResponse.headersMap {
+		builder.WriteString(fmt.Sprintf("%s: %s", key, val))
+		builder.WriteString("\r\n")
+	}
+
 	builder.WriteString("\r\n")
 	builder.WriteString("\r\n")
 
