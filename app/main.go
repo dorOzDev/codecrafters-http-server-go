@@ -71,25 +71,26 @@ func parseHttpRequest(conn net.Conn) (HttpRequest, error) {
 	}
 
 	method, path, version := parts[0], parts[1], parts[2]
-	if method != GET && method != POST {
+	httpMethod, isValidMethod := GetHttpMethod(method)
+	if !isValidMethod {
 		return nil, fmt.Errorf("unsupported method: %s", method)
 	}
 
 	headers := extractHeaders(lines)
 	queryParams, cleanPath := extractQueryParams(path)
 
-	if method == GET {
+	if httpMethod.Equals(GET) {
 		return &GetRequest{
-			methodValue:    method,
+			methodValue:    httpMethod,
 			pathValue:      cleanPath,
 			versionValue:   version,
 			rawValue:       raw,
 			headersMap:     headers,
 			queryParamsMap: queryParams,
 		}, nil
-	} else if method == POST {
+	} else if httpMethod.Equals(POST) {
 		return &PostRequest{
-			methodValue:    method,
+			methodValue:    httpMethod,
 			pathValue:      cleanPath,
 			versionValue:   version,
 			rawValue:       raw,
@@ -121,19 +122,17 @@ func readRawRequest(conn net.Conn) (string, error) {
 			return "", err
 		}
 		rawRequest.WriteString(line)
-		if line == "\r\n" { // End of headers
+		if line == "\r\n" {
 			break
 		}
 	}
 
 	headersPart := rawRequest.String()
-
-	// Parse Content-Length from headers
 	contentLength := 0
 	scanner := bufio.NewScanner(strings.NewReader(headersPart))
 	for scanner.Scan() {
 		line := scanner.Text()
-		if strings.HasPrefix(strings.ToLower(line), "content-length:") {
+		if strings.HasPrefix(strings.ToLower(line), strings.ToLower(CONTENT_LENGTH)) {
 			value := strings.TrimSpace(strings.SplitN(line, ":", 2)[1])
 			cl, err := strconv.Atoi(value)
 			if err != nil {
@@ -144,7 +143,6 @@ func readRawRequest(conn net.Conn) (string, error) {
 		}
 	}
 
-	// Read body if Content-Length > 0
 	if contentLength > 0 {
 		body := make([]byte, contentLength)
 		_, err := io.ReadFull(reader, body)

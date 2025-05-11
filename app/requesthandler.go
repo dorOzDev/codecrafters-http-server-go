@@ -39,12 +39,12 @@ func reformatResponse(httpRequest HttpRequest, httpResponse HttpResponse) string
 	builder.WriteString(httpResponse.status.String())
 	builder.WriteString("\r\n")
 	if httpResponse.contentType != "" {
-		builder.WriteString(fmt.Sprintf("Content-Type: %s", httpResponse.contentType))
+		builder.WriteString(fmt.Sprintf("%s: %s", CONTENT_TYPE, httpResponse.contentType))
 	}
 
 	if httpResponse.contentLength > 0 {
 		builder.WriteString("\r\n")
-		builder.WriteString(fmt.Sprintf("Content-Length: %d", httpResponse.contentLength))
+		builder.WriteString(fmt.Sprintf("%s: %d", CONTENT_LENGTH, httpResponse.contentLength))
 	}
 
 	for key, val := range httpResponse.headersMap {
@@ -59,4 +59,10 @@ func reformatResponse(httpRequest HttpRequest, httpResponse HttpResponse) string
 
 	newVar := builder.String()
 	return newVar
+}
+
+func enrichHeaders(req HttpRequest, res HttpResponse) {
+	if res.contentType != "" {
+		//res.addHeader()
+	}
 }

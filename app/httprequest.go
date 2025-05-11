@@ -16,7 +16,7 @@ type HttpRequest interface {
 }
 
 type GetRequest struct {
-	methodValue    string
+	methodValue    httpMethod
 	pathValue      string
 	versionValue   string
 	rawValue       string
@@ -24,7 +24,7 @@ type GetRequest struct {
 	queryParamsMap map[string]string
 }
 
-func (r GetRequest) method() string                         { return r.methodValue }
+func (r GetRequest) method() string                         { return r.methodValue.value }
 func (r GetRequest) path() string                           { return r.pathValue }
 func (r GetRequest) raw() string                            { return r.rawValue }
 func (r GetRequest) version() string                        { return r.versionValue }
@@ -33,7 +33,7 @@ func (r GetRequest) queryParams() map[string]string         { return r.queryPara
 func (r GetRequest) hasHeader(header string) (string, bool) { return hasHeader(r, header) }
 
 type PostRequest struct {
-	methodValue    string
+	methodValue    httpMethod
 	pathValue      string
 	versionValue   string
 	rawValue       string
@@ -42,7 +42,7 @@ type PostRequest struct {
 	bodyValue      string
 }
 
-func (r PostRequest) method() string                         { return r.methodValue }
+func (r PostRequest) method() string                         { return r.methodValue.value }
 func (r PostRequest) path() string                           { return r.pathValue }
 func (r PostRequest) raw() string                            { return r.rawValue }
 func (r PostRequest) version() string                        { return r.versionValue }
@@ -54,14 +54,38 @@ func (r PostRequest) body() string {
 	return r.bodyValue
 }
 
-const (
-	GET  = "GET"
-	POST = "POST"
+type httpMethod struct {
+	value string
+}
+
+var (
+	GET         = httpMethod{value: "GET"}
+	POST        = httpMethod{value: "POST"}
+	UNSUPPORTED = httpMethod{value: "UNSUPPORTED METHOD"}
 )
+
+var supportedMethods = []httpMethod{GET, POST}
+
+func GetHttpMethod(value string) (httpMethod, bool) {
+	upperCaseValue := strings.ToUpper(value)
+	for _, method := range supportedMethods {
+		if method.value == upperCaseValue {
+			return method, true
+		}
+	}
+
+	return UNSUPPORTED, false
+}
+
+func (actual httpMethod) Equals(expected httpMethod) bool {
+	return expected.value == actual.value
+}
 
 const (
 	ACCEPT_ENCODING  = "Accept-Encoding"
 	CONTENT_ENCODING = "Content-Encoding"
+	CONTENT_LENGTH   = "Content-Length"
+	CONTENT_TYPE     = "Content-Type"
 )
 
 func hasHeader(httpRequest HttpRequest, header string) (string, bool) {
