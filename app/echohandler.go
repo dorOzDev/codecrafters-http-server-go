@@ -17,7 +17,7 @@ func (e EchoHandler) handleRequest(httpRequest HttpRequest) HttpResponse {
 		strings.Split(val, ",")
 		headerValue, exists := isSupportedEncoding(parseAcceptEncoding(val))
 		if exists {
-			resp.addHeader(CONTENT_ENCODING, headerValue)
+			resp.AddHeader(CONTENT_ENCODING, headerValue)
 		} else {
 
 		}

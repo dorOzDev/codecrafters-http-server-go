@@ -48,7 +48,8 @@ func handleConnection(conn net.Conn) {
 
 	for _, handler := range handlers {
 		if handler.accept(request) {
-			conn.Write([]byte(reformatResponse(request, handler.handleRequest(request))))
+			resp := handler.handleRequest(request)
+			conn.Write([]byte(resp.reformatResponse(request)))
 			break
 		}
 	}
