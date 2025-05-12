@@ -74,7 +74,7 @@ func (resp HttpResponse) reformatResponse(req HttpRequest) string {
 	return newVar
 }
 
-func (resp HttpResponse) enrichHeaders(req HttpRequest) {
+func (resp *HttpResponse) enrichHeaders(req HttpRequest) {
 	if resp.contentType != "" {
 		resp.AddHeader(CONTENT_TYPE, resp.contentType)
 	}

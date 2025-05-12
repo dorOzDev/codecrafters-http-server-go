@@ -1,6 +1,9 @@
 package main
 
-import "strings"
+import (
+	"strconv"
+	"strings"
+)
 
 type Handler interface {
 	// validate that this handle handles this url
@@ -59,8 +62,8 @@ func HandleHttpRequest(request HttpRequest) HttpResponse {
 			panic(err)
 		}
 		resp.contentLength = len(compressedBody)
+		resp.headersMap[CONTENT_LENGTH] = strconv.Itoa(len(compressedBody))
 		resp.body = compressedBody
-
 	}
 
 	return resp
