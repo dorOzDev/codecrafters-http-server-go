@@ -27,8 +27,23 @@ func (n NotFoundHandler) handleRequest(httpRequest HttpRequest) HttpResponse {
 	return NotFoundResponse
 }
 
-func enrichHeaders(req HttpRequest, res HttpResponse) {
-	if res.contentType != "" {
-		//res.addHeader()
+var handlers = []Handler{
+	RootHandler{},
+	EchoHandler{},
+	UserAgentHandler{},
+	FilesHandler{},
+	NotFoundHandler{},
+}
+
+func HandleHttpRequest(request HttpRequest) HttpResponse {
+	var resp HttpResponse
+	for _, handler := range handlers {
+		if handler.accept(request) {
+			resp = handler.handleRequest(request)
+			resp.enrichHeaders(request)
+			break
+		}
 	}
+
+	return resp
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 )
 
@@ -58,15 +59,6 @@ func (resp HttpResponse) reformatResponse(req HttpRequest) string {
 
 	builder.WriteString(fmt.Sprintf("%s ", req.version()))
 	builder.WriteString(resp.status.String())
-	builder.WriteString("\r\n")
-	if resp.contentType != "" {
-		builder.WriteString(fmt.Sprintf("%s: %s", CONTENT_TYPE, resp.contentType))
-	}
-
-	if resp.contentLength > 0 {
-		builder.WriteString("\r\n")
-		builder.WriteString(fmt.Sprintf("%s: %d", CONTENT_LENGTH, resp.contentLength))
-	}
 
 	for key, val := range resp.headersMap {
 		builder.WriteString("\r\n")
@@ -80,4 +72,22 @@ func (resp HttpResponse) reformatResponse(req HttpRequest) string {
 
 	newVar := builder.String()
 	return newVar
+}
+
+func (resp HttpResponse) enrichHeaders(req HttpRequest) {
+	if resp.contentType != "" {
+		resp.AddHeader(CONTENT_TYPE, resp.contentType)
+	}
+
+	if resp.contentLength > 0 {
+		resp.AddHeader(CONTENT_LENGTH, strconv.Itoa(resp.contentLength))
+	}
+	val, exists := req.hasHeader(ACCEPT_ENCODING)
+	if exists {
+		strings.Split(val, ",")
+		headerValue, exists := isSupportedEncoding(parseAcceptEncoding(val))
+		if exists {
+			resp.AddHeader(CONTENT_ENCODING, headerValue)
+		}
+	}
 }

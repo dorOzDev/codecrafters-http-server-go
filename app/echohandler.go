@@ -11,16 +11,6 @@ func (e EchoHandler) accept(httpRequest HttpRequest) bool {
 }
 
 func (e EchoHandler) handleRequest(httpRequest HttpRequest) HttpResponse {
-	val, exists := httpRequest.hasHeader(ACCEPT_ENCODING)
 	resp := CreateHttpResponse(StatusOk, ContentType{}.text(), strings.TrimPrefix(httpRequest.path(), echoHandlerPath))
-	if exists {
-		strings.Split(val, ",")
-		headerValue, exists := isSupportedEncoding(parseAcceptEncoding(val))
-		if exists {
-			resp.AddHeader(CONTENT_ENCODING, headerValue)
-		} else {
-
-		}
-	}
 	return resp
 }

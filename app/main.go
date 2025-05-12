@@ -35,24 +35,9 @@ func main() {
 
 func handleConnection(conn net.Conn) {
 	defer conn.Close()
-
 	request, _ := parseHttpRequest(conn)
-
-	handlers := []Handler{
-		RootHandler{},
-		EchoHandler{},
-		UserAgentHandler{},
-		FilesHandler{},
-		NotFoundHandler{},
-	}
-
-	for _, handler := range handlers {
-		if handler.accept(request) {
-			resp := handler.handleRequest(request)
-			conn.Write([]byte(resp.reformatResponse(request)))
-			break
-		}
-	}
+	resp := HandleHttpRequest(request)
+	conn.Write([]byte(resp.reformatResponse(request)))
 }
 
 func parseHttpRequest(conn net.Conn) (HttpRequest, error) {
