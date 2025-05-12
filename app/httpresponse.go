@@ -10,11 +10,11 @@ type HttpResponse struct {
 	status        HttpStatus
 	contentType   string
 	contentLength int
-	body          string
+	body          []byte
 	headersMap    map[string]string
 }
 
-func CreateHttpResponse(httpStatus HttpStatus, contentType string, body string) HttpResponse {
+func CreateHttpResponse(httpStatus HttpStatus, contentType string, body []byte) HttpResponse {
 	return HttpResponse{
 		status:        httpStatus,
 		contentType:   contentType,
@@ -28,10 +28,10 @@ func (r HttpResponse) AddHeader(headerName string, headerValue string) {
 	r.headersMap[headerName] = headerValue
 }
 
-var NotFoundResponse = CreateHttpResponse(StatusNotFound, "", "")
-var RootResponse = CreateHttpResponse(StatusOk, "", "")
-var CreatedResponse = CreateHttpResponse(StatusCreated, "", "")
-var UnexpectedError = CreateHttpResponse(StatusInternalError, "", "")
+var NotFoundResponse = CreateHttpResponse(StatusNotFound, "", []byte{})
+var RootResponse = CreateHttpResponse(StatusOk, "", []byte{})
+var CreatedResponse = CreateHttpResponse(StatusCreated, "", []byte{})
+var UnexpectedError = CreateHttpResponse(StatusInternalError, "", []byte{})
 
 const (
 	JSON  = "application/json"
@@ -68,7 +68,7 @@ func (resp HttpResponse) reformatResponse(req HttpRequest) string {
 	builder.WriteString("\r\n")
 	builder.WriteString("\r\n")
 
-	builder.WriteString(resp.body)
+	builder.WriteString(string(resp.body))
 
 	newVar := builder.String()
 	return newVar

@@ -1,5 +1,7 @@
 package main
 
+import "strings"
+
 type Handler interface {
 	// validate that this handle handles this url
 	accept(httpRequest HttpRequest) bool
@@ -35,6 +37,10 @@ var handlers = []Handler{
 	NotFoundHandler{},
 }
 
+var compressList = []Compresser{
+	GzipCompresser{},
+}
+
 func HandleHttpRequest(request HttpRequest) HttpResponse {
 	var resp HttpResponse
 	for _, handler := range handlers {
@@ -45,5 +51,29 @@ func HandleHttpRequest(request HttpRequest) HttpResponse {
 		}
 	}
 
+	compressorName, exists := resp.headersMap[CONTENT_ENCODING]
+	if exists {
+		compressor := getCompressor(compressorName)
+		compressedBody, err := compressor.compress(resp.body)
+		if err != nil {
+			panic(err)
+		}
+		resp.contentLength = len(compressedBody)
+		resp.body = compressedBody
+
+	}
+
 	return resp
+}
+
+func getCompressor(compressorName string) Compresser {
+	var res Compresser
+
+	for _, compressor := range compressList {
+		if strings.EqualFold(compressor.compressorName(), compressorName) {
+			res = compressor
+		}
+	}
+
+	return res
 }

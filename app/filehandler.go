@@ -58,7 +58,7 @@ func handleGetRequest(request *GetRequest) HttpResponse {
 		return NotFoundResponse
 	}
 
-	return CreateHttpResponse(StatusOk, ContentType{}.octet(), string(data))
+	return CreateHttpResponse(StatusOk, ContentType{}.octet(), data)
 }
 
 func getAbsolutePath(request HttpRequest) (string, error) {

@@ -2,7 +2,6 @@ package main
 
 import (
 	"strings"
-	"sync"
 )
 
 type HttpRequest interface {
@@ -95,34 +94,4 @@ func hasHeader(httpRequest HttpRequest, header string) (string, bool) {
 
 	val, exists := httpRequest.headers()[header]
 	return val, exists
-}
-
-var (
-	supportedEncodingMap map[string]struct{}
-	once                 sync.Once
-)
-
-func isSupportedEncoding(encodingArray []string) (string, bool) {
-	once.Do(func() {
-		supportedEncodingMap = map[string]struct{}{
-			"gzip": {},
-		}
-	})
-
-	for _, encoding := range encodingArray {
-		_, exists := supportedEncodingMap[strings.ToLower(encoding)]
-		if exists {
-			return encoding, true
-		}
-	}
-
-	return "", false
-}
-
-func parseAcceptEncoding(headerValue string) []string {
-	encodings := strings.Split(headerValue, ",")
-	for i := range encodings {
-		encodings[i] = strings.TrimSpace(encodings[i])
-	}
-	return encodings
 }
