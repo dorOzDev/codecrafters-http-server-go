@@ -35,15 +35,23 @@ func main() {
 
 func handleConnection(conn net.Conn) {
 	defer conn.Close()
-	request, _ := parseHttpRequest(conn)
-	resp := HandleHttpRequest(request)
-	conn.Write([]byte(resp.reformatResponse(request)))
-	val, exists := request.hasHeader(CONNECTION)
-	if exists {
-		if strings.ToLower(val) == "close" {
+	for {
+		req, _ := parseHttpRequest(conn)
+		resp := HandleHttpRequest(req)
+		conn.Write([]byte(resp.reformatResponse(req)))
+		if shouldClose(req) {
 			return
 		}
 	}
+}
+
+func shouldClose(req HttpRequest) bool {
+	val, exists := req.hasHeader(CONNECTION)
+	if exists {
+		return strings.ToLower(val) == "close"
+	}
+
+	return false
 }
 
 func parseHttpRequest(conn net.Conn) (HttpRequest, error) {
