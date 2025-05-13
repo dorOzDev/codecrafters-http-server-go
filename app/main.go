@@ -38,6 +38,12 @@ func handleConnection(conn net.Conn) {
 	request, _ := parseHttpRequest(conn)
 	resp := HandleHttpRequest(request)
 	conn.Write([]byte(resp.reformatResponse(request)))
+	val, exists := request.hasHeader(CONNECTION)
+	if exists {
+		if strings.ToLower(val) == "close" {
+			return
+		}
+	}
 }
 
 func parseHttpRequest(conn net.Conn) (HttpRequest, error) {

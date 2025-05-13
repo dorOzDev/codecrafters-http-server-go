@@ -85,6 +85,7 @@ const (
 	CONTENT_ENCODING = "Content-Encoding"
 	CONTENT_LENGTH   = "Content-Length"
 	CONTENT_TYPE     = "Content-Type"
+	CONNECTION       = "Connection"
 )
 
 func hasHeader(httpRequest HttpRequest, header string) (string, bool) {
