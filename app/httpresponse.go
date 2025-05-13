@@ -90,4 +90,8 @@ func (resp *HttpResponse) enrichHeaders(req HttpRequest) {
 			resp.AddHeader(CONTENT_ENCODING, headerValue)
 		}
 	}
+	val, exists = req.hasHeader(CONNECTION)
+	if exists && strings.ToLower(val) == "close" {
+		resp.AddHeader(CONNECTION, val)
+	}
 }
