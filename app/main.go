@@ -36,10 +36,15 @@ func main() {
 func handleConnection(conn net.Conn) {
 	defer conn.Close()
 	for {
-		req, _ := parseHttpRequest(conn)
+		req, err := parseHttpRequest(conn)
+		if err != nil {
+			fmt.Println("Closing connection due to: ", err)
+			return
+		}
 		resp := HandleHttpRequest(req)
 		conn.Write([]byte(resp.reformatResponse(req)))
 		if shouldClose(req) {
+			fmt.Println("Closing connection due to request by user")
 			return
 		}
 	}
